@@ -16,7 +16,6 @@ interface ExportControlsProps {
 
 const ExportControls: React.FC<ExportControlsProps> = ({ data, performance, stats, focusCodes }) => {
   
-  // Helper untuk menghitung OA per Sales per SKU
   const calculateOA = (userCode: string, skuCode: string) => {
     if (!skuCode) return 0;
     const uniqueRetailers = new Set(
@@ -31,7 +30,6 @@ const ExportControls: React.FC<ExportControlsProps> = ({ data, performance, stat
     return uniqueRetailers.size;
   };
 
-  // Helper to calculate net value per row
   const getNetValue = (row: SalesData) => {
     const val = Number(row.Line_Value) || 0;
     return row.Status === 'R' ? -val : val;
@@ -41,47 +39,36 @@ const ExportControls: React.FC<ExportControlsProps> = ({ data, performance, stat
     const wb = XLSX.utils.book_new();
     const totalOmsetVal = stats.totalOmset || 1;
     
-    // 1. Summary Sheet
+    // 1. Summary
     const summaryData = [
-      ["Laporan Daily Sales Tracking", ""],
+      ["Executive Daily Sales Report", ""],
       ["Tanggal Cetak", new Date().toLocaleString('id-ID')],
       ["", ""],
-      ["Metrik Utama", "Nilai"],
+      ["Key Metrics", "Value"],
       ["Total Net Omset", stats.totalOmset],
       ["Total Invoices", stats.totalInvoice],
       ["Total Quantity", stats.totalQuantity],
       ["Outlet Active (OA)", stats.outletActive],
-      ["Total Baris SKU Terjual (Line Sold)", stats.totalLineSold],
-      ["Rata-rata SKU/Inv", stats.avgSkuPerInvoice.toFixed(2)]
+      ["Total Line Sold", stats.totalLineSold],
+      ["Avg SKU/Inv", stats.avgSkuPerInvoice.toFixed(2)]
     ];
     const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
-    XLSX.utils.book_append_sheet(wb, wsSummary, "Ringkasan");
+    XLSX.utils.book_append_sheet(wb, wsSummary, "Summary");
 
-    // 2. Sales Performance Sheet
+    // 2. Sales Performance
     const perfData = performance.map(p => ({
-      "Kode Sales": p.userCode,
+      "Sales Code": p.userCode,
       "Net Omset": p.omset,
-      "Jumlah Invoice": p.invoice,
+      "Invoices": p.invoice,
       "Net Qty": p.qty,
-      "OA Total": p.oa,
-      "Total Baris SKU": p.totalSku,
+      "Total OA": p.oa,
+      "Line Sold": p.totalSku,
       "Avg SKU/Inv": p.avgSkuInv.toFixed(2)
     }));
     const wsPerf = XLSX.utils.json_to_sheet(perfData);
-    XLSX.utils.book_append_sheet(wb, wsPerf, "Performa Sales");
+    XLSX.utils.book_append_sheet(wb, wsPerf, "Performance");
 
-    // 3. Product Focus Achievement Sheet
-    const pfData = performance.map(p => {
-      const row: any = { "Kode Sales": p.userCode };
-      focusCodes.forEach((code, idx) => {
-        row[`PF${idx + 1} (${code || 'N/A'})`] = code ? calculateOA(p.userCode, code) : 0;
-      });
-      return row;
-    });
-    const wsPF = XLSX.utils.json_to_sheet(pfData);
-    XLSX.utils.book_append_sheet(wb, wsPF, "Product Focus");
-
-    // 4. Top 30 Products Sheet
+    // 3. Top 30 Products
     const productMap = new Map<string, number>();
     data.forEach(row => {
       const sku = row.SKU_Code || 'Unknown';
@@ -95,32 +82,12 @@ const ExportControls: React.FC<ExportControlsProps> = ({ data, performance, stat
         "No": i + 1,
         "SKU Code": p.code,
         "Net Omset": p.omset,
-        "Contribution (%)": ((p.omset / totalOmsetVal) * 100).toFixed(2) + "%"
+        "% Contribution": ((p.omset / totalOmsetVal) * 100).toFixed(2) + "%"
       }));
     const wsTopProducts = XLSX.utils.json_to_sheet(topProducts);
     XLSX.utils.book_append_sheet(wb, wsTopProducts, "Top 30 Products");
 
-    // 5. Top 30 Outlets Sheet
-    const outletMap = new Map<string, number>();
-    data.forEach(row => {
-      const retailer = row.Retailer_Code || 'Unknown';
-      outletMap.set(retailer, (outletMap.get(retailer) || 0) + getNetValue(row));
-    });
-    const topOutlets = Array.from(outletMap.entries())
-      .map(([code, omset]) => ({ code, omset }))
-      .sort((a, b) => b.omset - a.omset)
-      .slice(0, 30)
-      .map((o, i) => ({
-        "No": i + 1,
-        "Retailer Code": o.code,
-        "Net Omset": o.omset,
-        "Contribution (%)": ((o.omset / totalOmsetVal) * 100).toFixed(2) + "%"
-      }));
-    const wsTopOutlets = XLSX.utils.json_to_sheet(topOutlets);
-    XLSX.utils.book_append_sheet(wb, wsTopOutlets, "Top 30 Outlets");
-
-    // 6. Raw Data Sheet (Detail Transaksi Rapi)
-    // Menyesuaikan dengan kolom yang tampil di UI: Date, No Inv, Status, Sales, Outlet, Product, Price, Qty, Value
+    // 4. Transactions Detail
     const detailedTransactionData = data.map(row => ({
       "Date": row.Invoice_Date,
       "No Inv": row.Invoice_No,
@@ -133,9 +100,9 @@ const ExportControls: React.FC<ExportControlsProps> = ({ data, performance, stat
       "Value": row.Status === 'R' ? -row.Line_Value : row.Line_Value
     }));
     const wsRaw = XLSX.utils.json_to_sheet(detailedTransactionData);
-    XLSX.utils.book_append_sheet(wb, wsRaw, "Detail Transaksi");
+    XLSX.utils.book_append_sheet(wb, wsRaw, "Transactions");
 
-    XLSX.writeFile(wb, `DailySalesTracking_Full_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
+    XLSX.writeFile(wb, `Executive_Sales_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
   const exportToPDF = () => {
@@ -144,71 +111,72 @@ const ExportControls: React.FC<ExportControlsProps> = ({ data, performance, stat
       unit: 'mm',
       format: 'a4'
     });
-    const dateStr = new Date().toLocaleDateString('id-ID');
+    const dateStr = new Date().toLocaleString('id-ID');
 
-    // --- PAGE 1 ---
-    doc.setFontSize(18);
-    doc.setTextColor(79, 70, 229);
-    doc.text('Daily Sales Tracking Report', 14, 15);
+    // --- PAGE 1: EXECUTIVE SUMMARY ---
+    doc.setFontSize(20);
+    doc.setTextColor(27, 60, 83); // #1B3C53
+    doc.text('Executive Sales Report', 14, 20);
     
     doc.setFontSize(9);
-    doc.setTextColor(100, 116, 139);
-    doc.text(`Dicetak pada: ${dateStr}`, 14, 22);
+    doc.setTextColor(69, 104, 130); // #456882
+    doc.text(`Generated at: ${dateStr}`, 14, 27);
 
-    doc.setFontSize(12);
-    doc.setTextColor(30, 41, 59);
-    doc.text('Ringkasan Performa', 14, 32);
-    
+    // Summary Table
     (doc as any).autoTable({
       startY: 35,
-      head: [['Metrik Utama', 'Nilai']],
+      head: [['Key Metrics', 'Value']],
       body: [
         ['Total Net Omset', `Rp ${formatNumber(stats.totalOmset)}`],
         ['Total Invoices', formatNumber(stats.totalInvoice)],
-        ['Total Outlet Active', formatNumber(stats.outletActive)],
-        ['Total Qty Terjual', formatNumber(stats.totalQuantity)],
-        ['Total Line Sold', formatNumber(stats.totalLineSold)],
+        ['Total Outlet Active (OA)', formatNumber(stats.outletActive)],
+        ['Total Quantity Sold', formatNumber(stats.totalQuantity)],
+        ['Total SKU Lines (Line Sold)', formatNumber(stats.totalLineSold)],
         ['Avg SKU per Invoice', stats.avgSkuPerInvoice.toFixed(2)]
       ],
       theme: 'striped',
-      headStyles: { fillColor: [99, 102, 241] },
+      headStyles: { fillColor: [27, 60, 83], fontSize: 10 },
       styles: { fontSize: 9 }
     });
 
     const lastY1 = (doc as any).lastAutoTable.finalY || 35;
-    doc.setFontSize(12);
-    doc.text('Performa Sales Team', 14, lastY1 + 10);
-    
+    doc.setFontSize(11);
+    doc.setTextColor(27, 60, 83);
+    doc.text('Sales Team Performance', 14, lastY1 + 10);
+
+    // Sales Table (Updated with Avg SKU)
     (doc as any).autoTable({
       startY: lastY1 + 13,
-      head: [['Sales', 'Net Omset', 'Inv', 'Qty', 'OA', 'SKU']],
+      head: [['Sales Code', 'Net Omset', 'Inv', 'Qty', 'OA', 'Line', 'Avg SKU']],
       body: performance.map(p => [
         p.userCode,
         formatNumber(p.omset),
         p.invoice,
         p.qty,
         p.oa,
-        p.totalSku
+        p.totalSku,
+        p.avgSkuInv.toFixed(2)
       ]),
       theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229], halign: 'center' },
+      headStyles: { fillColor: [35, 76, 106], halign: 'center' },
       styles: { fontSize: 8 },
-      columnStyles: {
-        1: { halign: 'right' },
-        2: { halign: 'center' },
-        3: { halign: 'center' },
-        4: { halign: 'center' },
-        5: { halign: 'center' }
+      columnStyles: { 
+        1: { halign: 'right' }, 
+        2: { halign: 'center' }, 
+        3: { halign: 'center' }, 
+        4: { halign: 'center' }, 
+        5: { halign: 'center' },
+        6: { halign: 'center' }
       }
     });
 
     const lastY2 = (doc as any).lastAutoTable.finalY || lastY1 + 13;
     let pfStartY = lastY2 + 10;
-    if (pfStartY > 250) { doc.addPage(); pfStartY = 20; }
-    
-    doc.setFontSize(12);
-    doc.text('OA Product Focus', 14, pfStartY);
-    
+    if (pfStartY > 240) { doc.addPage(); pfStartY = 20; }
+
+    doc.setFontSize(11);
+    doc.text('Product Focus OA Achievement', 14, pfStartY);
+
     const pfHeader = ['Sales', ...focusCodes.map((c, i) => `PF${i+1}\n${c || '-'}`)];
     const pfBody = performance.map(p => [
       p.userCode,
@@ -220,113 +188,80 @@ const ExportControls: React.FC<ExportControlsProps> = ({ data, performance, stat
       head: [pfHeader],
       body: pfBody,
       theme: 'grid',
-      headStyles: { fillColor: [67, 56, 202], fontSize: 6, halign: 'center' },
+      headStyles: { fillColor: [69, 104, 130], fontSize: 7, halign: 'center' },
       styles: { fontSize: 7, halign: 'center' },
-      columnStyles: { 0: { halign: 'left', fontStyle: 'bold', minCellWidth: 20 } }
+      columnStyles: { 0: { halign: 'left', fontStyle: 'bold' } }
     });
 
-    // --- PAGE 2: TOP 30 PRODUCT & TOP 30 OUTLET ---
+    // --- PAGE 2: TOP PERFORMANCE ANALYTICS ---
     doc.addPage();
     doc.setFontSize(18);
-    doc.setTextColor(79, 70, 229);
-    doc.text('Top Performance Analytics', 14, 15);
+    doc.setTextColor(27, 60, 83);
+    doc.text('Performance Analytics', 14, 20);
     
     doc.setFontSize(9);
-    doc.setTextColor(100, 116, 139);
-    doc.text('Top 30 Products & Top 30 Outlets Breakdown', 14, 22);
+    doc.setTextColor(69, 104, 130);
+    doc.text('Top 30 Products & Top 30 Outlets Breakdown', 14, 27);
 
-    // Calculate Top 30 Products
-    const productMap = new Map<string, number>();
-    data.forEach(row => {
-      const sku = row.SKU_Code || 'Unknown';
-      productMap.set(sku, (productMap.get(sku) || 0) + getNetValue(row));
-    });
-    const topProducts = Array.from(productMap.entries())
-      .map(([code, omset]) => ({ code, omset }))
-      .sort((a, b) => b.omset - a.omset)
-      .slice(0, 30);
-
-    // Calculate Top 30 Outlets
-    const outletMap = new Map<string, number>();
-    data.forEach(row => {
-      const retailer = row.Retailer_Code || 'Unknown';
-      outletMap.set(retailer, (outletMap.get(retailer) || 0) + getNetValue(row));
-    });
-    const topOutlets = Array.from(outletMap.entries())
-      .map(([code, omset]) => ({ code, omset }))
-      .sort((a, b) => b.omset - a.omset)
-      .slice(0, 30);
-
+    // Calculations
     const totalOmsetVal = stats.totalOmset || 1;
+    const productMap = new Map<string, number>();
+    data.forEach(row => productMap.set(row.SKU_Code || 'N/A', (productMap.get(row.SKU_Code || 'N/A') || 0) + getNetValue(row)));
+    const topProducts = Array.from(productMap.entries()).map(([code, omset]) => ({ code, omset })).sort((a, b) => b.omset - a.omset).slice(0, 30);
 
-    // Table Titles
-    doc.setFontSize(11);
-    doc.setTextColor(30, 41, 59);
-    doc.text('Top 30 Products', 14, 32);
-    doc.text('Top 30 Outlets', 110, 32);
+    const outletMap = new Map<string, number>();
+    data.forEach(row => outletMap.set(row.Retailer_Code || 'N/A', (outletMap.get(row.Retailer_Code || 'N/A') || 0) + getNetValue(row)));
+    const topOutlets = Array.from(outletMap.entries()).map(([code, omset]) => ({ code, omset })).sort((a, b) => b.omset - a.omset).slice(0, 30);
 
-    // Table: Top Products (Left Column)
+    doc.setFontSize(10);
+    doc.setTextColor(27, 60, 83);
+    doc.text('Top 30 Products', 14, 37);
+    doc.text('Top 30 Outlets', 110, 37);
+
+    // Top Products Table (Left)
     (doc as any).autoTable({
-      startY: 35,
+      startY: 40,
       margin: { left: 14, right: 105 },
-      head: [['No', 'Code', 'Omset', '%']],
-      body: topProducts.map((p, i) => [
-        i + 1,
-        p.code,
-        formatNumber(p.omset),
-        ((p.omset / totalOmsetVal) * 100).toFixed(2) + '%'
-      ]),
+      head: [['#', 'SKU', 'Net Omset', '%']],
+      body: topProducts.map((p, i) => [i + 1, p.code, formatNumber(p.omset), ((p.omset / totalOmsetVal) * 100).toFixed(1) + '%']),
       theme: 'grid',
-      headStyles: { fillColor: [79, 70, 229], fontSize: 7, halign: 'center' },
+      headStyles: { fillColor: [27, 60, 83], fontSize: 7 },
       styles: { fontSize: 7, cellPadding: 1 },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 8 },
-        1: { halign: 'left', cellWidth: 35 },
-        2: { halign: 'right', cellWidth: 30 },
-        3: { halign: 'center', cellWidth: 15 }
-      }
+      columnStyles: { 0: { cellWidth: 6 }, 1: { cellWidth: 32 }, 2: { halign: 'right', cellWidth: 32 }, 3: { halign: 'center' } }
     });
 
-    // Table: Top Outlets (Right Column)
+    // Top Outlets Table (Right)
     (doc as any).autoTable({
-      startY: 35,
+      startY: 40,
       margin: { left: 110, right: 14 },
-      head: [['No', 'Code', 'Omset', '%']],
-      body: topOutlets.map((o, i) => [
-        i + 1,
-        o.code,
-        formatNumber(o.omset),
-        ((o.omset / totalOmsetVal) * 100).toFixed(2) + '%'
-      ]),
+      head: [['#', 'Outlet', 'Net Omset', '%']],
+      body: topOutlets.map((o, i) => [i + 1, o.code, formatNumber(o.omset), ((o.omset / totalOmsetVal) * 100).toFixed(1) + '%']),
       theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129], fontSize: 7, halign: 'center' },
+      headStyles: { fillColor: [35, 76, 106], fontSize: 7 },
       styles: { fontSize: 7, cellPadding: 1 },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 8 },
-        1: { halign: 'left', cellWidth: 35 },
-        2: { halign: 'right', cellWidth: 30 },
-        3: { halign: 'center', cellWidth: 15 }
-      }
+      columnStyles: { 0: { cellWidth: 6 }, 1: { cellWidth: 32 }, 2: { halign: 'right', cellWidth: 32 }, 3: { halign: 'center' } }
     });
 
-    doc.save(`DailySalesTracking_Report_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`Executive_Full_Report_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 w-full md:w-auto">
       <button 
         onClick={exportToExcel}
-        className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors text-sm font-semibold shadow-sm"
+        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 md:px-4 py-2 bg-[#234C6A] text-white rounded-xl hover:bg-[#1B3C53] transition-all text-[11px] md:text-sm font-black shadow-lg"
+        title="Export to Excel"
       >
-        <FileSpreadsheet className="w-4 h-4" />
-        Export Excel
+        <FileSpreadsheet className="w-3.5 h-3.5 md:w-4 md:h-4" />
+        <span className="hidden sm:inline">Excel</span>
       </button>
       <button 
         onClick={exportToPDF}
-        className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg hover:bg-rose-100 transition-colors text-sm font-semibold shadow-sm"
+        className="flex-1 md:flex-none flex items-center justify-center gap-2 px-3 md:px-4 py-2 bg-[#456882] text-white rounded-xl hover:bg-[#1B3C53] transition-all text-[11px] md:text-sm font-black shadow-lg"
+        title="Export Full PDF Report"
       >
-        <FilePdf className="w-4 h-4" />
-        Export PDF (Portrait)
+        <FilePdf className="w-3.5 h-3.5 md:w-4 md:h-4" />
+        <span className="hidden sm:inline">PDF</span>
       </button>
     </div>
   );

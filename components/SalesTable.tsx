@@ -36,42 +36,42 @@ const SalesTable: React.FC<SalesTableProps> = ({ data }) => {
   };
 
   return (
-    <div className="overflow-x-auto relative">
-      <table className="w-full text-sm text-left border-collapse">
-        <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200 sticky top-0 z-10">
+    <div className="overflow-x-auto relative scrollbar-thin scrollbar-thumb-[#456882] scrollbar-track-[#E3E3E3]">
+      <table className="w-full text-[11px] md:text-sm text-left border-collapse min-w-[900px]">
+        <thead className="text-[10px] md:text-xs text-[#E3E3E3] uppercase bg-[#234C6A] border-b border-[#1B3C53] sticky top-0 z-10">
           <tr>
-            <th onClick={() => handleSort('Invoice_Date')} className="px-6 py-3 cursor-pointer hover:bg-slate-100"><div className="flex items-center gap-1">Date {renderSortIcon('Invoice_Date')}</div></th>
-            <th onClick={() => handleSort('Invoice_No')} className="px-6 py-3 cursor-pointer hover:bg-slate-100"><div className="flex items-center gap-1">No Inv {renderSortIcon('Invoice_No')}</div></th>
-            <th className="px-6 py-3">Status</th>
-            <th className="px-6 py-3">Sales</th>
-            <th className="px-6 py-3">Outlet</th>
-            <th className="px-6 py-3">Product</th>
-            <th className="px-6 py-3 text-right">Price</th>
-            <th className="px-6 py-3 text-right">Qty</th>
-            <th onClick={() => handleSort('Line_Value')} className="px-6 py-3 text-right cursor-pointer hover:bg-slate-100"><div className="flex items-center justify-end gap-1">Value {renderSortIcon('Line_Value')}</div></th>
+            <th onClick={() => handleSort('Invoice_Date')} className="px-5 md:px-8 py-4 cursor-pointer hover:bg-[#1B3C53] transition-colors sticky left-0 bg-[#234C6A]"><div className="flex items-center gap-2 font-black">Date {renderSortIcon('Invoice_Date')}</div></th>
+            <th onClick={() => handleSort('Invoice_No')} className="px-5 md:px-8 py-4 cursor-pointer hover:bg-[#1B3C53] transition-colors"><div className="flex items-center gap-2 font-black">No Inv {renderSortIcon('Invoice_No')}</div></th>
+            <th className="px-5 md:px-8 py-4 font-black">Status</th>
+            <th className="px-5 md:px-8 py-4 font-black">Sales</th>
+            <th className="px-5 md:px-8 py-4 font-black">Outlet</th>
+            <th className="px-5 md:px-8 py-4 font-black">Product</th>
+            <th className="px-5 md:px-8 py-4 text-right font-black">Price</th>
+            <th className="px-5 md:px-8 py-4 text-right font-black">Qty</th>
+            <th onClick={() => handleSort('Line_Value')} className="px-5 md:px-8 py-4 text-right cursor-pointer hover:bg-[#1B3C53] transition-colors"><div className="flex items-center justify-end gap-2 font-black">Value {renderSortIcon('Line_Value')}</div></th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-100">
+        <tbody className="divide-y divide-[#E3E3E3]">
           {sortedData.length === 0 ? (
-            <tr><td colSpan={9} className="px-6 py-12 text-center text-slate-400">No transactions found.</td></tr>
+            <tr><td colSpan={9} className="px-5 md:px-8 py-12 md:py-16 text-center text-[#456882] font-bold">No transactions detected.</td></tr>
           ) : (
             sortedData.map((row, idx) => (
-              <tr key={idx} className={`hover:bg-slate-50 transition-colors ${row.Status === 'R' ? 'bg-red-50/30' : ''}`}>
-                <td className="px-6 py-4 whitespace-nowrap text-slate-600">{row.Invoice_Date}</td>
-                <td className="px-6 py-4 font-medium text-slate-900">{row.Invoice_No}</td>
-                <td className="px-6 py-4">
-                  <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${row.Status === 'R' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>
-                    {row.Status === 'R' ? 'Return' : 'Invoice'}
+              <tr key={idx} className={`hover:bg-[#E3E3E3]/50 transition-colors ${row.Status === 'R' ? 'bg-red-50/50' : ''}`}>
+                <td className="px-5 md:px-8 py-3 md:py-5 whitespace-nowrap text-[#456882] font-semibold sticky left-0 bg-white group-hover:bg-[#E3E3E3]/50">{row.Invoice_Date}</td>
+                <td className="px-5 md:px-8 py-3 md:py-5 font-bold text-[#1B3C53]">{row.Invoice_No}</td>
+                <td className="px-5 md:px-8 py-3 md:py-5">
+                  <span className={`px-2 md:px-3 py-1 rounded text-[9px] md:text-[10px] font-black uppercase tracking-widest ${row.Status === 'R' ? 'bg-red-600 text-white' : 'bg-[#456882] text-white'}`}>
+                    {row.Status === 'R' ? 'Return' : 'Inv'}
                   </span>
                 </td>
-                <td className="px-6 py-4 text-slate-600">{row.User_Code}</td>
-                <td className="px-6 py-4 text-slate-600">{row.Retailer_Code}</td>
-                <td className="px-6 py-4 text-slate-600 truncate max-w-[150px]">{row.SKU_Code}</td>
-                <td className="px-6 py-4 text-right text-slate-500">{formatShorthand(row.SKU_Price)}</td>
-                <td className={`px-6 py-4 text-right font-medium ${row.Status === 'R' ? 'text-red-600' : 'text-slate-600'}`}>
+                <td className="px-5 md:px-8 py-3 md:py-5 text-[#1B3C53] font-medium">{row.User_Code}</td>
+                <td className="px-5 md:px-8 py-3 md:py-5 text-[#1B3C53] font-medium">{row.Retailer_Code}</td>
+                <td className="px-5 md:px-8 py-3 md:py-5 text-[#456882] font-medium truncate max-w-[120px] md:max-w-[150px]">{row.SKU_Code}</td>
+                <td className="px-5 md:px-8 py-3 md:py-5 text-right text-[#456882] font-bold">{formatShorthand(row.SKU_Price)}</td>
+                <td className={`px-5 md:px-8 py-3 md:py-5 text-right font-black ${row.Status === 'R' ? 'text-red-600' : 'text-[#1B3C53]'}`}>
                   {row.Status === 'R' ? `-${row.Invoice_Qty}` : row.Invoice_Qty}
                 </td>
-                <td className={`px-6 py-4 text-right font-semibold ${row.Status === 'R' ? 'text-red-600' : 'text-slate-900'}`}>
+                <td className={`px-5 md:px-8 py-3 md:py-5 text-right font-black ${row.Status === 'R' ? 'text-red-600' : 'text-[#234C6A]'}`}>
                   {row.Status === 'R' ? `-${formatShorthand(row.Line_Value)}` : formatShorthand(row.Line_Value)}
                 </td>
               </tr>

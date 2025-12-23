@@ -4,7 +4,8 @@ import {
   TrendingUp, 
   FileText, 
   Search,
-  Users
+  Users,
+  Filter
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
@@ -23,8 +24,8 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBranch, setFilterBranch] = useState<string>('All');
+  const [showFilters, setShowFilters] = useState(false);
   
-  // State for dynamic Product Focus Codes (PF1 - PF8)
   const [focusCodes, setFocusCodes] = useState<string[]>(Array(8).fill(''));
 
   const handleFocusCodeChange = (index: number, code: string) => {
@@ -33,7 +34,6 @@ const App: React.FC = () => {
     setFocusCodes(updated);
   };
 
-  // Extract unique SKUs for the dropdown
   const availableSKUs = useMemo(() => {
     const skus = new Set<string>();
     rawData.forEach(row => {
@@ -42,10 +42,8 @@ const App: React.FC = () => {
     return Array.from(skus).sort();
   }, [rawData]);
 
-  // Helper to calculate net value per row
   const getNetValue = (row: SalesData) => {
     const val = Number(row.Line_Value) || 0;
-    // Net Omset = Invoice (I) - Return (R)
     return row.Status === 'R' ? -val : val;
   };
 
@@ -238,36 +236,64 @@ const App: React.FC = () => {
   }, [filteredData]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      <nav className="sticky top-0 z-50 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
-          <div className="bg-indigo-600 p-2 rounded-lg"><TrendingUp className="text-white w-5 h-5" /></div>
-          <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-blue-600">Daily Sales Tracking</h1>
-        </div>
-        {rawData.length > 0 && (
+    <div className="min-h-screen flex flex-col">
+      <nav className="sticky top-0 z-50 bg-[#1B3C53] border-b border-[#234C6A] px-4 md:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between shadow-lg gap-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="relative hidden md:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input type="text" placeholder="Search..." className="pl-9 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm outline-none focus:ring-2 focus:ring-indigo-500 w-64" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            <div className="bg-[#456882] p-2 rounded-xl shadow-inner"><TrendingUp className="text-white w-5 h-5 md:w-6 md:h-6" /></div>
+            <h1 className="text-lg md:text-2xl font-black tracking-tight text-[#E3E3E3] truncate">Daily Sales Tracking</h1>
+          </div>
+          {rawData.length > 0 && (
+            <button 
+              onClick={() => setShowFilters(!showFilters)}
+              className="md:hidden p-2 text-[#E3E3E3] bg-[#234C6A] rounded-lg"
+            >
+              <Filter className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
+        {rawData.length > 0 && (
+          <div className={`${showFilters ? 'flex' : 'hidden md:flex'} flex-col md:flex-row items-stretch md:items-center gap-4 animate-in slide-in-from-top-2 duration-300`}>
+            <div className="relative w-full md:w-auto">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#456882] w-4 h-4" />
+              <input 
+                type="text" 
+                placeholder="Search..." 
+                className="pl-10 pr-4 py-2 bg-[#234C6A] border-none rounded-xl text-sm text-white placeholder-[#456882] outline-none focus:ring-2 focus:ring-[#456882] w-full md:w-64 lg:w-72 transition-all" 
+                value={searchTerm} 
+                onChange={(e) => setSearchTerm(e.target.value)} 
+              />
             </div>
-            <select className="bg-slate-100 border-none rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500" value={filterBranch} onChange={(e) => setFilterBranch(e.target.value)}>
+            <select 
+              className="bg-[#234C6A] border-none rounded-xl px-4 py-2 text-sm text-white outline-none focus:ring-2 focus:ring-[#456882] cursor-pointer w-full md:w-auto" 
+              value={filterBranch} 
+              onChange={(e) => setFilterBranch(e.target.value)}
+            >
               <option value="All">All Branches</option>
               {branches.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
-            <div className="h-8 w-px bg-slate-200 mx-1 hidden md:block"></div>
-            <ExportControls data={filteredData} performance={salesTeamPerformance} stats={stats} focusCodes={focusCodes} />
-            <button onClick={() => setRawData([])} className="px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 rounded-full transition-colors">Reset</button>
+            <div className="hidden md:block h-8 w-px bg-[#234C6A] mx-1"></div>
+            <div className="flex items-center gap-2">
+              <ExportControls data={filteredData} performance={salesTeamPerformance} stats={stats} focusCodes={focusCodes} />
+              <button 
+                onClick={() => setRawData([])} 
+                className="flex-1 md:flex-none px-5 py-2 text-sm font-bold text-[#E3E3E3] bg-[#234C6A] hover:bg-[#456882] rounded-xl transition-all shadow-sm"
+              >
+                Reset
+              </button>
+            </div>
           </div>
         )}
       </nav>
 
-      <main className="flex-1 p-4 md:p-6 max-w-7xl mx-auto w-full">
+      <main className="flex-1 p-3 md:p-8 max-w-full lg:max-w-7xl mx-auto w-full">
         {rawData.length === 0 ? (
-          <div className="h-[70vh] flex items-center justify-center">
+          <div className="min-h-[70vh] flex items-center justify-center p-4">
             <FileUpload onUpload={handleFileUpload} isLoading={isLoading} error={error} />
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 md:space-y-8">
             <KPISection stats={stats} />
             <ChartsSection products={productPerformance} pareto={paretoOutlets} salesTeam={salesTeamPerformance} dailyOmset={dailyPerformance} />
             
@@ -279,36 +305,36 @@ const App: React.FC = () => {
               availableSKUs={availableSKUs}
             />
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2 bg-slate-50/50">
-                <Users className="w-5 h-5 text-indigo-600" />
-                <h2 className="font-semibold text-slate-800">Sales Performance (Net Omset)</h2>
+            <div className="bg-white rounded-2xl shadow-xl border border-[#E3E3E3] overflow-hidden">
+              <div className="px-5 md:px-8 py-5 border-b border-[#E3E3E3] flex items-center gap-3 bg-[#1B3C53]">
+                <Users className="w-5 h-5 md:w-6 md:h-6 text-[#456882]" />
+                <h2 className="font-bold text-[#E3E3E3] text-base md:text-lg">Sales Performance (Net Omset)</h2>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+              <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-[#456882] scrollbar-track-[#E3E3E3]">
+                <table className="w-full text-xs md:text-sm text-left min-w-[800px]">
+                  <thead className="text-[10px] md:text-xs text-[#E3E3E3] uppercase bg-[#234C6A] border-b border-[#1B3C53]">
                     <tr>
-                      <th className="px-6 py-3 font-semibold">User Code</th>
-                      <th className="px-6 py-3 font-semibold text-right">Net Omset</th>
-                      <th className="px-6 py-3 font-semibold text-right">Invoices (I)</th>
-                      <th className="px-6 py-3 font-semibold text-right">Net Qty</th>
-                      <th className="px-6 py-3 font-semibold text-right">OA</th>
-                      <th className="px-6 py-3 font-semibold text-right">Total SKU</th>
-                      <th className="px-6 py-3 font-semibold text-right">Avg SKU/INV</th>
+                      <th className="px-5 md:px-8 py-4 font-bold sticky left-0 bg-[#234C6A]">User Code</th>
+                      <th className="px-5 md:px-8 py-4 font-bold text-right">Net Omset</th>
+                      <th className="px-5 md:px-8 py-4 font-bold text-right">Invoices</th>
+                      <th className="px-5 md:px-8 py-4 font-bold text-right">Net Qty</th>
+                      <th className="px-5 md:px-8 py-4 font-bold text-right">OA</th>
+                      <th className="px-5 md:px-8 py-4 font-bold text-right">Total SKU</th>
+                      <th className="px-5 md:px-8 py-4 font-bold text-right">Avg SKU/INV</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody className="divide-y divide-[#E3E3E3]">
                     {salesTeamPerformance.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4 font-medium text-slate-700">{item.userCode}</td>
-                        <td className={`px-6 py-4 text-right font-semibold ${item.omset < 0 ? 'text-red-600' : 'text-slate-900'}`}>
+                      <tr key={idx} className="hover:bg-[#E3E3E3]/50 transition-colors">
+                        <td className="px-5 md:px-8 py-4 md:py-5 font-bold text-[#1B3C53] sticky left-0 bg-white group-hover:bg-[#E3E3E3]/50">{item.userCode}</td>
+                        <td className={`px-5 md:px-8 py-4 md:py-5 text-right font-black ${item.omset < 0 ? 'text-red-600' : 'text-[#234C6A]'}`}>
                           Rp {formatShorthand(item.omset)}
                         </td>
-                        <td className="px-6 py-4 text-right">{item.invoice}</td>
-                        <td className="px-6 py-4 text-right">{item.qty.toLocaleString()}</td>
-                        <td className="px-6 py-4 text-right">{item.oa}</td>
-                        <td className="px-6 py-4 text-right font-medium text-indigo-600">{item.totalSku}</td>
-                        <td className="px-6 py-4 text-right text-slate-500">{item.avgSkuInv.toFixed(2)}</td>
+                        <td className="px-5 md:px-8 py-4 md:py-5 text-right font-medium">{item.invoice}</td>
+                        <td className="px-5 md:px-8 py-4 md:py-5 text-right font-medium">{item.qty.toLocaleString()}</td>
+                        <td className="px-5 md:px-8 py-4 md:py-5 text-right font-medium">{item.oa}</td>
+                        <td className="px-5 md:px-8 py-4 md:py-5 text-right font-bold text-[#456882]">{item.totalSku}</td>
+                        <td className="px-5 md:px-8 py-4 md:py-5 text-right text-[#456882]">{item.avgSkuInv.toFixed(2)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -316,11 +342,11 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-indigo-600" />
-                  <h2 className="font-semibold text-slate-800">Transaction Details (Status I=Inv, R=Retur)</h2>
+            <div className="bg-white rounded-2xl shadow-xl border border-[#E3E3E3] overflow-hidden">
+              <div className="px-5 md:px-8 py-5 border-b border-[#E3E3E3] flex items-center justify-between bg-[#1B3C53]">
+                <div className="flex items-center gap-3">
+                  <FileText className="w-5 h-5 md:w-6 md:h-6 text-[#456882]" />
+                  <h2 className="font-bold text-[#E3E3E3] text-base md:text-lg">Transaction Details</h2>
                 </div>
               </div>
               <SalesTable data={filteredData} />
@@ -328,8 +354,8 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
-      <footer className="py-6 text-center text-slate-400 text-xs border-t border-slate-200 bg-white">
-        &copy; {new Date().getFullYear()} Daily Sales Tracking. All rights reserved.
+      <footer className="py-6 md:py-8 text-center text-[#456882] text-[10px] md:text-sm font-medium border-t border-[#E3E3E3] bg-white">
+        &copy; {new Date().getFullYear()} Daily Sales Tracking. Powered by Executive Analytics.
       </footer>
     </div>
   );

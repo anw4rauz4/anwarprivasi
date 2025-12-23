@@ -19,54 +19,54 @@ const ChartsSection: React.FC<ChartsSectionProps> = ({ products, pareto, salesTe
   const paretoChartData = pareto.slice(0, 10);
   
   return (
-    <div className="grid grid-cols-1 gap-6 w-full lg:col-span-2">
-      {/* Daily Omset Chart - Area + Line + Dot + Auto Labels */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden col-span-1">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2 bg-slate-50/50">
-          <CalendarDays className="w-5 h-5 text-indigo-600" />
-          <h2 className="font-semibold text-slate-800">Total Net Omset Harian</h2>
+    <div className="grid grid-cols-1 gap-8 w-full lg:col-span-2">
+      {/* Daily Omset Chart */}
+      <div className="bg-white rounded-2xl shadow-xl border border-[#E3E3E3] overflow-hidden col-span-1">
+        <div className="px-8 py-5 border-b border-[#E3E3E3] flex items-center gap-3 bg-[#1B3C53]">
+          <CalendarDays className="w-6 h-6 text-[#456882]" />
+          <h2 className="font-bold text-[#E3E3E3] text-lg">Total Net Omset Harian</h2>
         </div>
-        <div className="p-6 h-[400px]">
+        <div className="p-8 h-[450px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dailyOmset} margin={{ top: 40, right: 20, left: -20, bottom: 10 }}>
+            <AreaChart data={dailyOmset} margin={{ top: 40, right: 30, left: -20, bottom: 10 }}>
               <defs>
                 <linearGradient id="colorOmset" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#1B3C53" stopOpacity={0.4}/>
+                  <stop offset="95%" stopColor="#1B3C53" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E3E3E3" />
               <XAxis 
                 dataKey="label" 
                 fontSize={12} 
-                stroke="#64748b" 
-                tick={{ fill: '#64748b' }}
+                stroke="#1B3C53" 
+                tick={{ fill: '#1B3C53', fontWeight: 600 }}
                 tickLine={false}
                 axisLine={false}
               />
-              {/* Sumbu Y disembunyikan untuk tampilan minimalis */}
               <YAxis hide domain={['auto', 'auto']} />
               <Tooltip 
-                contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                contentStyle={{ backgroundColor: '#1B3C53', borderRadius: '12px', border: 'none', color: '#E3E3E3', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)' }}
+                itemStyle={{ color: '#E3E3E3' }}
                 formatter={(value: number) => [`Rp ${formatShorthand(value)}`, 'Net Omset']}
                 labelFormatter={(label) => `Tanggal ${label}`}
               />
               <Area 
                 type="monotone" 
                 dataKey="omset" 
-                stroke="#6366f1" 
-                strokeWidth={3}
+                stroke="#1B3C53" 
+                strokeWidth={4}
                 fillOpacity={1} 
                 fill="url(#colorOmset)" 
-                dot={{ r: 4, fill: '#6366f1', stroke: '#fff', strokeWidth: 2 }}
-                activeDot={{ r: 6, fill: '#4f46e5', stroke: '#fff', strokeWidth: 2 }}
+                dot={{ r: 5, fill: '#1B3C53', stroke: '#E3E3E3', strokeWidth: 3 }}
+                activeDot={{ r: 8, fill: '#234C6A', stroke: '#fff', strokeWidth: 3 }}
               >
                 <LabelList 
                   dataKey="omset" 
                   position="top" 
                   offset={15}
                   formatter={(val: number) => formatShorthand(val)}
-                  style={{ fontSize: '11px', fill: '#4f46e5', fontWeight: '700' }}
+                  style={{ fontSize: '12px', fill: '#1B3C53', fontWeight: '900' }}
                 />
               </Area>
             </AreaChart>
@@ -74,40 +74,41 @@ const ChartsSection: React.FC<ChartsSectionProps> = ({ products, pareto, salesTe
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Top Products Chart - With Auto Labels */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2 bg-slate-50/50">
-            <Box className="w-5 h-5 text-indigo-600" />
-            <h2 className="font-semibold text-slate-800">Top Products by Net Omset</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Top Products Chart */}
+        <div className="bg-white rounded-2xl shadow-xl border border-[#E3E3E3] overflow-hidden">
+          <div className="px-8 py-5 border-b border-[#E3E3E3] flex items-center gap-3 bg-[#1B3C53]">
+            <Box className="w-6 h-6 text-[#456882]" />
+            <h2 className="font-bold text-[#E3E3E3] text-lg">Top Products by Net Omset</h2>
           </div>
-          <div className="p-6 h-[400px]">
+          <div className="p-8 h-[450px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={products} margin={{ top: 30, right: 10, left: -20, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E3E3E3" />
                 <XAxis 
                   dataKey="skuCode" 
                   angle={-45} 
                   textAnchor="end" 
                   height={80} 
-                  fontSize={10} 
+                  fontSize={11} 
                   interval={0}
-                  stroke="#64748b"
+                  stroke="#1B3C53"
+                  tick={{ fill: '#1B3C53', fontWeight: 600 }}
                   tickLine={false}
                   axisLine={false}
                 />
-                {/* Sumbu Y disembunyikan */}
                 <YAxis hide domain={['auto', 'auto']} />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                  contentStyle={{ backgroundColor: '#234C6A', borderRadius: '12px', border: 'none', color: '#E3E3E3' }}
+                  itemStyle={{ color: '#E3E3E3' }}
                   formatter={(value: number) => [`Rp ${formatShorthand(value)}`, 'Net Omset']}
                 />
-                <Bar dataKey="totalOmset" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={24}>
+                <Bar dataKey="totalOmset" fill="#456882" radius={[6, 6, 0, 0]} barSize={28}>
                   <LabelList 
                     dataKey="totalOmset" 
                     position="top" 
                     formatter={(val: number) => formatShorthand(val)}
-                    style={{ fontSize: '10px', fill: '#6366f1', fontWeight: 'bold' }}
+                    style={{ fontSize: '11px', fill: '#1B3C53', fontWeight: 'bold' }}
                   />
                 </Bar>
               </BarChart>
@@ -115,40 +116,40 @@ const ChartsSection: React.FC<ChartsSectionProps> = ({ products, pareto, salesTe
           </div>
         </div>
 
-        {/* Pareto Chart - With Auto Labels */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2 bg-slate-50/50">
-            <TrendingUp className="w-5 h-5 text-indigo-600" />
-            <h2 className="font-semibold text-slate-800">Top Outlets (Pareto 80/20)</h2>
+        {/* Pareto Chart */}
+        <div className="bg-white rounded-2xl shadow-xl border border-[#E3E3E3] overflow-hidden">
+          <div className="px-8 py-5 border-b border-[#E3E3E3] flex items-center gap-3 bg-[#1B3C53]">
+            <TrendingUp className="w-6 h-6 text-[#456882]" />
+            <h2 className="font-bold text-[#E3E3E3] text-lg">Top Outlets (Pareto 80/20)</h2>
           </div>
-          <div className="p-6 h-[400px]">
+          <div className="p-8 h-[450px]">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={paretoChartData} margin={{ top: 30, right: 20, left: -20, bottom: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="retailerCode" fontSize={10} stroke="#64748b" tickLine={false} axisLine={false} />
-                {/* Sumbu Y kiri dan kanan disembunyikan */}
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E3E3E3" />
+                <XAxis dataKey="retailerCode" fontSize={11} stroke="#1B3C53" tick={{ fill: '#1B3C53', fontWeight: 600 }} tickLine={false} axisLine={false} />
                 <YAxis yAxisId="left" hide domain={['auto', 'auto']} />
                 <YAxis yAxisId="right" orientation="right" hide />
                 <Tooltip 
-                  contentStyle={{ backgroundColor: '#fff', borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}
+                  contentStyle={{ backgroundColor: '#1B3C53', borderRadius: '12px', border: 'none', color: '#E3E3E3' }}
+                  itemStyle={{ color: '#E3E3E3' }}
                   formatter={(value: number, name: string) => {
                     if (name === 'Net Omset') return [`Rp ${formatShorthand(value)}`, name];
                     return [value.toFixed(1) + '%', name];
                   }}
                 />
-                <Bar yAxisId="left" dataKey="omset" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Net Omset" barSize={30}>
+                <Bar yAxisId="left" dataKey="omset" fill="#234C6A" radius={[6, 6, 0, 0]} name="Net Omset" barSize={35}>
                   <LabelList 
                     dataKey="omset" 
                     position="top" 
                     formatter={(val: number) => formatShorthand(val)}
-                    style={{ fontSize: '10px', fill: '#3b82f6', fontWeight: 'bold' }}
+                    style={{ fontSize: '11px', fill: '#1B3C53', fontWeight: 'black' }}
                   />
                 </Bar>
-                <Line yAxisId="right" type="monotone" dataKey="cumulativePercentage" stroke="#ef4444" strokeWidth={2} dot={{ fill: '#ef4444', r: 4, stroke: '#fff', strokeWidth: 2 }} name="Cum %" />
+                <Line yAxisId="right" type="monotone" dataKey="cumulativePercentage" stroke="#456882" strokeWidth={4} dot={{ fill: '#456882', r: 5, stroke: '#E3E3E3', strokeWidth: 3 }} name="Cum %" />
               </ComposedChart>
             </ResponsiveContainer>
-            <div className="mt-2 text-center text-xs text-slate-500 italic">
-              Outlets shown contribute to {paretoChartData.length > 0 ? paretoChartData[paretoChartData.length - 1].cumulativePercentage.toFixed(1) : 0}% of total revenue.
+            <div className="mt-4 text-center text-xs text-[#456882] font-bold uppercase tracking-widest italic">
+              Outlets contributing to {paretoChartData.length > 0 ? paretoChartData[paretoChartData.length - 1].cumulativePercentage.toFixed(1) : 0}% Revenue
             </div>
           </div>
         </div>

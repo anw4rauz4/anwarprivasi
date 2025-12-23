@@ -18,33 +18,19 @@ const ProductFocusGrid: React.FC<ProductFocusGridProps> = ({
   onFocusCodeChange,
   availableSKUs
 }) => {
-  // Menghitung OA per salesperson per SKU secara efisien
-  // OA = Jumlah Retailer unik yang membeli SKU tersebut dari Sales tersebut
   const achievementMap = React.useMemo(() => {
     const map = new Map<string, Map<string, Set<string>>>();
-
     salesData.forEach(row => {
-      // Hanya hitung status 'I' (Invoice/Penjualan), bukan 'R' (Return)
       if (row.Status !== 'I') return;
-      
       const user = String(row.User_Code).trim();
       const sku = String(row.SKU_Code).trim();
       const retailer = String(row.Retailer_Code).trim();
-
       if (!user || !sku || !retailer) return;
-
-      if (!map.has(user)) {
-        map.set(user, new Map());
-      }
-      
+      if (!map.has(user)) map.set(user, new Map());
       const userMap = map.get(user)!;
-      if (!userMap.has(sku)) {
-        userMap.set(sku, new Set());
-      }
-      
+      if (!userMap.has(sku)) userMap.set(sku, new Set());
       userMap.get(sku)!.add(retailer);
     });
-
     return map;
   }, [salesData]);
 
@@ -54,35 +40,35 @@ const ProductFocusGrid: React.FC<ProductFocusGridProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-      <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
-        <div className="flex items-center gap-2">
-          <div className="bg-indigo-100 p-1.5 rounded-lg">
-            <Target className="w-5 h-5 text-indigo-600" />
+    <div className="bg-white rounded-2xl shadow-xl border border-[#E3E3E3] overflow-hidden mb-6 md:mb-8">
+      <div className="px-5 md:px-8 py-5 border-b border-[#E3E3E3] flex items-center justify-between bg-[#1B3C53]">
+        <div className="flex items-center gap-3">
+          <div className="bg-[#456882] p-2 rounded-xl shadow-inner">
+            <Target className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </div>
-          <h2 className="font-semibold text-slate-800">OA Product Focus Achievement</h2>
+          <h2 className="font-bold text-[#E3E3E3] text-base md:text-lg">Product Focus OA</h2>
         </div>
         <div className="flex items-center gap-2">
-           <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Metrik: Outlet Active (OA)</span>
+           <span className="text-[9px] md:text-[10px] font-black text-[#456882] uppercase tracking-widest bg-[#234C6A] px-3 py-1 rounded-full shadow-sm">OA Metric</span>
         </div>
       </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm text-left border-collapse">
-          <thead className="text-xs text-slate-500 uppercase bg-slate-50 border-b border-slate-200">
+      <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-[#456882] scrollbar-track-[#E3E3E3]">
+        <table className="w-full text-xs md:text-sm text-left border-collapse min-w-[1000px]">
+          <thead className="text-[10px] md:text-xs text-[#E3E3E3] uppercase bg-[#234C6A] border-b border-[#1B3C53]">
             <tr>
-              <th className="px-6 py-4 font-bold border-r border-slate-200 min-w-[200px] text-slate-600">
-                KODE SALES
+              <th className="px-5 md:px-8 py-4 md:py-6 font-black border-r border-[#1B3C53] min-w-[150px] md:min-w-[200px] sticky left-0 bg-[#234C6A] z-20">
+                SALES CODE
               </th>
               {focusCodes.map((code, idx) => (
-                <th key={idx} className="px-2 py-3 min-w-[130px] border-r border-slate-200 last:border-r-0">
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-[10px] text-center text-indigo-600 font-extrabold bg-indigo-50 py-0.5 rounded">PF {idx + 1}</span>
+                <th key={idx} className="px-3 py-3 md:py-4 min-w-[120px] md:min-w-[140px] border-r border-[#1B3C53] last:border-r-0">
+                  <div className="flex flex-col gap-2">
+                    <span className="text-[9px] text-center text-white font-black bg-[#456882] py-1 rounded-lg uppercase tracking-widest">PF {idx + 1}</span>
                     <select 
-                      className="w-full px-2 py-1.5 text-[11px] font-semibold border border-slate-200 rounded-md focus:ring-2 focus:ring-indigo-500 outline-none bg-white cursor-pointer hover:border-indigo-300 transition-colors"
+                      className="w-full px-2 py-1.5 md:px-3 md:py-2 text-[10px] md:text-[11px] font-black border border-[#1B3C53] rounded-xl focus:ring-2 focus:ring-[#456882] outline-none bg-[#E3E3E3] text-[#1B3C53] cursor-pointer hover:bg-white transition-all shadow-inner"
                       value={code}
                       onChange={(e) => onFocusCodeChange(idx, e.target.value)}
                     >
-                      <option value="">-- PILIH SKU --</option>
+                      <option value="">-- SKU --</option>
                       {availableSKUs.map(sku => (
                         <option key={sku} value={sku}>{sku}</option>
                       ))}
@@ -92,27 +78,24 @@ const ProductFocusGrid: React.FC<ProductFocusGridProps> = ({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-[#E3E3E3]">
             {salesTeam.length === 0 ? (
               <tr>
-                <td colSpan={focusCodes.length + 1} className="px-6 py-12 text-center text-slate-400">
-                  <div className="flex flex-col items-center gap-2">
-                    <p className="text-sm font-medium">Belum ada data sales yang tersedia.</p>
-                    <p className="text-xs">Silakan upload file laporan penjualan terlebih dahulu.</p>
-                  </div>
+                <td colSpan={focusCodes.length + 1} className="px-8 py-16 md:py-20 text-center text-[#456882]">
+                  <p className="text-sm md:text-lg font-black uppercase tracking-widest">No Sales Data Available</p>
                 </td>
               </tr>
             ) : (
               salesTeam.map((userCode, idx) => (
-                <tr key={idx} className="hover:bg-indigo-50/20 transition-colors group">
-                  <td className="px-6 py-3.5 font-semibold text-slate-700 border-r border-slate-200 group-hover:text-indigo-600">
+                <tr key={idx} className="hover:bg-[#E3E3E3]/50 transition-colors group">
+                  <td className="px-5 md:px-8 py-3.5 md:py-4.5 font-black text-[#1B3C53] border-r border-[#E3E3E3] sticky left-0 bg-white group-hover:bg-[#E3E3E3]/50">
                     {userCode}
                   </td>
                   {focusCodes.map((code, fIdx) => {
                     const count = getAchievement(userCode, code);
                     const hasCode = code !== "";
                     return (
-                      <td key={fIdx} className={`px-2 py-3.5 text-center border-r border-slate-200 last:border-r-0 font-bold transition-all ${hasCode && count > 0 ? 'text-indigo-700 bg-indigo-50/40' : 'text-slate-300'}`}>
+                      <td key={fIdx} className={`px-3 py-3.5 md:py-4.5 text-center border-r border-[#E3E3E3] last:border-r-0 font-black transition-all ${hasCode && count > 0 ? 'text-[#1B3C53] bg-[#456882]/10' : 'text-[#456882]/30'}`}>
                         {hasCode ? (count > 0 ? count : '0') : '-'}
                       </td>
                     );
@@ -123,8 +106,10 @@ const ProductFocusGrid: React.FC<ProductFocusGridProps> = ({
           </tbody>
         </table>
       </div>
-      <div className="px-6 py-2 bg-slate-50 border-t border-slate-200">
-        <p className="text-[10px] text-slate-400 italic">* Nilai di atas menunjukkan jumlah Outlet unik yang mengorder SKU Focus tersebut melalui sales terkait.</p>
+      <div className="px-5 md:px-8 py-3 md:py-4 bg-[#E3E3E3]/50 border-t border-[#E3E3E3]">
+        <p className="text-[9px] md:text-[10px] text-[#456882] font-bold italic uppercase tracking-wider">
+          * OA (Outlet Active) dihitung berdasarkan jumlah toko unik yang memesan SKU terkait.
+        </p>
       </div>
     </div>
   );
